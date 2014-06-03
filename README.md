@@ -1,1 +1,1 @@
-Python code for scraping FT.com article based on company search results
+Python code for scraping FT.com articles based on company search results
