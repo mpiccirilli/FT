@@ -54,7 +54,7 @@ def article_search():
             browser.get(i)
             article_body.append(browser.find_element_by_id("storyContent").text)
         except:
-            body[i] = "Special article, no access"
+            body[i] = "NULL"
 
     data = {'date': article_date, 'title': article_titles, 'link': article_links, 'body': article_body, 'company': company}
     df = pd.DataFrame(data)
@@ -64,7 +64,7 @@ def article_search():
     if decision_time == "y":
         article_search()
     else:
-        browser.find_element_by_id("ftLogin-logout")
+        browser.find_element_by_id("ftLogin-logout").click()
         browser.quit()
 
 
