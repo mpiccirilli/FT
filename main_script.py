@@ -1,13 +1,19 @@
 import os
 import re
-from sys import exit
-
-import pandas as pd
-
-from selenium import webdriver
-
-from lxml import html
 import requests
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas.io.data as web
+
+
+from sys import exit
+from selenium import webdriver
+from lxml import html
+
+
+
+
 
 os.chdir("/Users/michaelpiccirilli/Documents/GitHub/FT/")
 
@@ -42,48 +48,67 @@ def article_search():
     company = raw_input("What company would you like to search for on www.FT.com? ")
     
     beg_url = "http://search.ft.com/search?q=%r" % company
-    end_url = '&t=all&rpp=10&fa=people%2Corganisations%2Cregions%2Csections%2Ctopics%2Ccategory%2Cbrand&s=-initialPublishDateTime&f=category%5B"article"%5D%5B"Articles"%5D&ftsearchType=on&curations=ARTICLES%2CBLOGS%2CVIDEOS%2CPODCASTS&highlight=true'
+    end_url = '&t=all&rpp=25&fa=people%2Corganisations%2Cregions%2Csections%2Ctopics%2Ccategory%2Cbrand&s=-initialPublishDateTime&f=category%5B"article"%5D%5B"Articles"%5D&ftsearchType=on&curations=ARTICLES%2CBLOGS%2CVIDEOS%2CPODCASTS&highlight=true'
 
     page = requests.get(beg_url+end_url)
     tree = html.fromstring(page.text)
 
     article_titles = tree.xpath("//ol/li/h3/a/text()")
     article_links = tree.xpath("//ol/li/h3/a/@href")
-    article_date = tree.xpath("//ol/li/div/div/p/text()")
-    article_body = []
     
+    article_date = []
+    article_body = []
     for i in range(0,len(article_links)):
         try:
-            browser.get(article_links[i]) #this is not working --> it passes straight to the exception
+            browser.get(article_links[i]) 
             article_body.append(browser.find_element_by_id("storyContent").text)
+            article_date.append(re.findall(r'\w+\s{1}\d+,\s{1}\d{4}', browser.find_element_by_id("publicationDate").text))
         except:
             article_body.append("NULL")
+            article_date.append("NULL")
+            
+    
+    data = pd.DataFrame({'date': article_date, 'title': article_titles, 'link': article_links, 
+    'body': article_body, 'company': company, 'pos': "", 'neg': "", 'total': ""})
+    
+    data = data[data['date'] != "NULL"]
+    data.index = np.arange(len(data))
 
-    structure = {'date': article_date, 'title': article_titles, 'link': article_links, 
-    'body': article_body, 'company': company, 'pos': "", 'neg': "", 'total': "",
-    'pos_perc': "", 'neg_perc': ""}
-    
-    data = pd.DataFrame(structure)
-    
     for i in range(0, len(data)):
-        temp = data['body'][i]    
+        temp = data['body'][i].lower()
         clean = re.sub(r'\W', " ", temp)
-        words = pd.DataFrame(re.split(r'\s+', clean))
-        tally = pd.DataFrame({"Count": pd.value_counts(words[0])})
+        words = re.split(r'\s+', clean)
+        tally = pd.DataFrame({"Count": pd.value_counts(words)})
         data['pos'][i] = float(sum(pd.merge(pos_words, tally, left_on="Word", right_index=True)['Count']))
         data['neg'][i] = float(sum(pd.merge(neg_words, tally, left_on="Word", right_index=True)['Count']))
         data['total'][i] = float(data['pos'][i]) + float(data['neg'][i])
         
-        try:
-            data['pos_perc'][i] = float(data['pos'][i])/data['total'][i]
-        except:
-            data['pos_perc'][i] = 0
+    data['date'] = data['date'].astype(str)
+    
+    for i in range(0, len(data)):
+        data['date'][i] = re.sub(r'\[u\'',"", data['date'][i])
+        data['date'][i] = re.sub(r'\'\]',"", data['date'][i])
         
-        try:    
-            data['neg_perc'][i] = float(data['neg'][i])/data['total'][i]
-        except:
-            data['neg_perc'][i] = 0
+    grouped = data.groupby('date')[['pos', 'neg', 'total']].sum().astype(float)
+    grouped['pos_perc']= ""
+    grouped['neg_perc']= ""
 
+    for i in range(0, len(grouped)):
+        try:
+            grouped['pos_perc'][i] = float(grouped['pos'][i])/grouped['total'][i]
+        except:
+            grouped['pos_perc'][i] = 0
+        try:    
+            grouped['neg_perc'][i] = float(grouped['neg'][i])/grouped['total'][i]
+        except:
+            grouped['neg_perc'][i] = 0
+
+    grouped.index = pd.to_datetime(grouped.index)
+
+    grouped = grouped.sort_index()
+
+        
+    
 
     data.to_csv("%s.csv" % (company), encoding="utf-8", index=False)
     
@@ -108,7 +133,6 @@ def start():
         article_search()        
     else:
         exit()
-
 
 start()
 
