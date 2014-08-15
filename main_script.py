@@ -110,7 +110,7 @@ def article_search():
         
     
 
-    data.to_csv("%s.csv" % (company), encoding="utf-8", index=False)
+    grouped.to_csv("%s.csv" % (company), encoding="utf-8", index=False)
     
     decision_time = raw_input("Would you like to run another search?  If not, you will be logged out and the browser will close. (y/n): ")
     if decision_time == "y":
