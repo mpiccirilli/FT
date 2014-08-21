@@ -125,8 +125,12 @@ def article_search():
     today = datetime.date.today()
     
 
+<<<<<<< HEAD
     data.to_csv("%s_articles_%s.csv" % (company,today.strftime("%Y%m%d")), encoding="utf-8", index=False)
     grouped.to_csv("%s_word_count_%s.csv" % (company, today.strftime("%Y%m%d")), index=True)
+=======
+    grouped.to_csv("%s.csv" % (company), encoding="utf-8", index=False)
+>>>>>>> 4bb2a31e1467e3c8728dce7f9eb91a2f205d7e98
     
     decision_time = raw_input("Would you like to run another search?  If not, you will be logged out and the browser will close. (y/n): ")
     if decision_time == "y":
