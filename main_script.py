@@ -5,13 +5,12 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas.io.data as web
+import datetime
 
 
 from sys import exit
 from selenium import webdriver
 from lxml import html
-
-
 
 
 
@@ -27,25 +26,34 @@ def open_browser():
     username_submit = browser.find_element_by_id("username")
     username_submit.send_keys(username_input)
     
-    password_input = raw_input("Please enter your password: ")
-    password_submit = browser.find_element_by_id("password")
-    password_submit.send_keys(password_input)
+    print """
     
-    browser.find_element_by_id("loginButton").click() #submit
+    Please type in your password, then answer the following:"""
+    
+    confirmation = raw_input("Have you typed in your password yet? (y/n): ")
 
-    
-    confirmation = raw_input("Have you logged in yet? (y/n): ")
-        
     if confirmation == "y":
-        article_search()
+        browser.find_element_by_id("loginButton").click() #submit
     else:
+        browser.close()
         exit()
 
+    
+
+
+    #password_input = raw_input("Please enter your password: ")
+    #password_submit = browser.find_element_by_id("password")
+    #password_submit.send_keys(password_input)
+    
+    
+    #confirmation = raw_input("Have you logged in yet? (y/n): ")
+        
+    
 
 def article_search():
     
     global company
-    company = raw_input("What company would you like to search for on www.FT.com? ")
+    company = raw_input("What company would you like to search for on www.FT.com?: ")
     
     beg_url = "http://search.ft.com/search?q=%r" % company
     end_url = '&t=all&rpp=25&fa=people%2Corganisations%2Cregions%2Csections%2Ctopics%2Ccategory%2Cbrand&s=-initialPublishDateTime&f=category%5B"article"%5D%5B"Articles"%5D&ftsearchType=on&curations=ARTICLES%2CBLOGS%2CVIDEOS%2CPODCASTS&highlight=true'
@@ -62,16 +70,22 @@ def article_search():
         try:
             browser.get(article_links[i]) 
             article_body.append(browser.find_element_by_id("storyContent").text)
-            article_date.append(re.findall(r'\w+\s{1}\d+,\s{1}\d{4}', browser.find_element_by_id("publicationDate").text))
         except:
             article_body.append("NULL")
-            article_date.append("NULL")
+        try:
+            article_date.append(re.findall(r'\w+\s{1}\d+,\s{1}\d{4}', browser.find_element_by_id("publicationDate").text))
+        except:
+            try:
+                article_date.append(re.findall(r'\w+\s{1}\d+,\s{1}\d{4}', browser.find_element_by_class_name("time").text))
+            except: 
+                article_date.append("NULL")
             
     
     data = pd.DataFrame({'date': article_date, 'title': article_titles, 'link': article_links, 
     'body': article_body, 'company': company, 'pos': "", 'neg': "", 'total': ""})
     
-    data = data[data['date'] != "NULL"]
+    data = data[data['body'] != "NULL"]
+    data = data[data['date'] != "NULL"]    
     data.index = np.arange(len(data))
 
     for i in range(0, len(data)):
@@ -106,18 +120,20 @@ def article_search():
     grouped.index = pd.to_datetime(grouped.index)
 
     grouped = grouped.sort_index()
-
-        
+    grouped.index.name = "date"
+    
+    today = datetime.date.today()
     
 
-    data.to_csv("%s.csv" % (company), encoding="utf-8", index=False)
+    data.to_csv("%s_articles_%s.csv" % (company,today.strftime("%Y%m%d")), encoding="utf-8", index=False)
+    grouped.to_csv("%s_word_count_%s.csv" % (company, today.strftime("%Y%m%d")), index=True)
     
     decision_time = raw_input("Would you like to run another search?  If not, you will be logged out and the browser will close. (y/n): ")
     if decision_time == "y":
         article_search()
     else:
         browser.find_element_by_id("ftLogin-logout").click()
-        browser.quit()
+        browser.close()
 
 
 
