@@ -1,6 +1,6 @@
 Project to scrape articles off the Financial Times for a sentiment analysis to be used in modeling stock returns.
 
-**In order to utilize this script you must need two things:**
+**In order to utilize this script you need two things:**
 
   **1) a subscription with the Financial Times**
   
