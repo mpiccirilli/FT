@@ -38,17 +38,6 @@ def open_browser():
         browser.close()
         exit()
 
-    
-
-
-    #password_input = raw_input("Please enter your password: ")
-    #password_submit = browser.find_element_by_id("password")
-    #password_submit.send_keys(password_input)
-    
-    
-    #confirmation = raw_input("Have you logged in yet? (y/n): ")
-        
-    
 
 def article_search():
     
@@ -129,7 +118,6 @@ def article_search():
     data.to_csv("%s_articles_%s.csv" % (company,today.strftime("%Y%m%d")), encoding="utf-8", index=False)
     grouped.to_csv("%s_word_count_%s.csv" % (company, today.strftime("%Y%m%d")), index=True)
 
-    grouped.to_csv("%s.csv" % (company), encoding="utf-8", index=False)
 
     
     decision_time = raw_input("Would you like to run another search?  If not, you will be logged out and the browser will close. (y/n): ")
