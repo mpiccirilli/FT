@@ -14,7 +14,7 @@ from lxml import html
 
 
 
-os.chdir("/Users/michaelpiccirilli/Documents/GitHub/FT/")
+os.chdir("")
 
 def open_browser():
     
