@@ -3,8 +3,8 @@ import re
 import requests
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import pandas.io.data as web
+import matplotlib.pyplot as plt #not currently used
+import pandas.io.data as web #not currently used
 import datetime
 
 
